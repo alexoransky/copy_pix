@@ -149,7 +149,7 @@ def copy_files(src, dest):
     same_dest_cnt = 0
     diff_dest_cnt = 0
 
-    pbar = tqdm.tqdm(total=total_cnt, unit=" files", mininterval=1.0, ascii=True)
+    pbar = tqdm.tqdm(total=total_cnt, unit="file", mininterval=1.0, ascii=True)
 
     for f in file_list:
         pbar.set_postfix_str(f.name.lower(), refresh=False)

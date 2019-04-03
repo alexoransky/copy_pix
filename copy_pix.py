@@ -125,7 +125,7 @@ def copy_files(src, dest):
         print("Not a folder: {} . Exiting.".format(dest))
         return 0
 
-    print("Copying files from {} to {}\n".format(src, dest), flush=True)
+    print("Copying files from {} to {}".format(src, dest), flush=True)
 
     # get all JPG and CR2 files from the source folder
     file_list = []

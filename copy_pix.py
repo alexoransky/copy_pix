@@ -3,16 +3,20 @@ import sys
 import pathlib
 import hashlib
 import tqdm
+from termcolor import cprint
 
 DELETE_DEST = False
 VERIFY_COPY = True
 EXT_TO_COPY = [".cr2", ".jpg"]
 
+
 def md5(fname):
     hash_md5 = hashlib.md5()
+
     with open(fname, "rb") as f:
         for chunk in iter(lambda: f.read(4096), b""):
             hash_md5.update(chunk)
+
     return hash_md5.hexdigest()
 
 
@@ -147,9 +151,8 @@ def copy_files(src, dest):
     copied_cnt = 0
     error_cnt = 0
     same_dest_cnt = 0
-    diff_dest_cnt = 0
 
-    pbar = tqdm.tqdm(total=total_cnt, unit="file", mininterval=1.0, ascii=True)
+    pbar = tqdm.tqdm(total=total_cnt, unit="file", mininterval=1.0, ascii=True, ncols=80)
 
     for f in file_list:
         pbar.set_postfix_str(f.name.lower(), refresh=False)
@@ -159,9 +162,6 @@ def copy_files(src, dest):
         if f.same_dest_exists:
             same_dest_cnt += 1
 
-        if f.diff_dest_exists:
-            diff_dest_cnt += 1
-
         if f.copied:
             copied_cnt += 1
 
@@ -169,8 +169,6 @@ def copy_files(src, dest):
             error_cnt += 1
 
     pbar.close()
-
-    print("", flush=True)
 
     files_not_copied = [f for f in file_list if (f.error and not f.copied)]
     not_copied_cnt = len(files_not_copied)
@@ -186,21 +184,32 @@ def copy_files(src, dest):
         for f in files_copied_err:
             print(f.name)
 
-    diff_files = [f for f in file_list if (f.diff_dest_exists)]
+    diff_files = [f for f in file_list if f.diff_dest_exists]
     diff_files_cnt = len(diff_files)
     if diff_files_cnt > 0:
         print("Files not copied because a different file already existed:")
         for f in diff_files:
             print(f.name)
 
-    print("Statistics:")
+    color_copied = None
+    if copied_cnt > 0:
+        color_copied = "blue"
+
+    color_diff = None
+    if diff_files_cnt > 0:
+        color_diff = "red"
+
+    color_err = None
+    if error_cnt > 0:
+        color_err = "red"
+
     print("Total files found in the source folder: {}".format(total_cnt))
-    print("Copied files: {}".format(copied_cnt))
-    print("Skipped copying because files are the same: {}".format(same_dest_cnt))
-    print("Skipped copying because files are different: {}".format(diff_dest_cnt))
-    print("Total errors: {}".format(error_cnt))
-    print("    Files not copied due to read/access errors: {}".format(not_copied_cnt))
-    print("    Files copied with errors: {}".format(copied_err_cnt))
+    cprint("Copied files: {}".format(copied_cnt), color_copied)
+    print("Skipped copying because files were the same: {}".format(same_dest_cnt))
+    cprint("Skipped copying because files were different: {}".format(diff_files_cnt), color_diff)
+    cprint("Total errors: {}".format(error_cnt), color_err)
+    cprint("    Files not copied due to read/access errors: {}".format(not_copied_cnt), color_err)
+    cprint("    Files copied with errors: {}".format(copied_err_cnt), color_err)
 
     return total_cnt
 
